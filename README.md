@@ -36,3 +36,55 @@ def content_page_search(pdf):  # 目录页查找
 ```
 此函数可以很好地识别出目录页的PDF页码并返回。
 #### 3.2 页码识别
+##### 3.2.1 偏移量计算
+在找出目录页之后，就迎来了新的问题，怎么把目录所展示的书本中的页码与PDF文件的页码相匹配。
+对于这个问题，我利用了偏移量的想法，因为我发现PDF的一页其实是跟书本的一页所相对应的，只不过由于前言等部分的存在，导致PDF页码和书本页码出现了偏移，要计算出这个偏移量，我选择了全PDF文件中最中间的那一页，并以这一页的书本页码和PDF页码来计算出偏移量，偏移量会在后续用于计算目录书本页码和PDF页码的对应。
+对于中间那一页的书本页码，由于页数一般都是在一页的最低端，因此我直接提取了最低端的页码作为书本页码。
+偏移量计算函数如下所示
+```python
+def offset_calculate(pdf):  # 偏移量计算
+    mid_page_num = int(len(pdf.pages) / 2)  # 计算中间页码数字
+    mid_page = pdf.pages[mid_page_num]  # 获取中间页
+    book_num = int(mid_page.extract_text_lines()[-1]['text'])  # 获取中间页对应书本的页码
+    offset = mid_page_num - book_num + 1  # 计算偏移量
+    return offset
+```
+##### 3.2.2 对应页码识别
+在有了 3.2.1 中计算出来的偏移量之后，就可以回到目录页去计算目录页的书本页码对应的PDF页码，只需将书本页码加上偏移量就是所对应的PDF的页码了，为了保证提取到正确的书本页码，我利用了正则表达式去匹配，用于匹配以字母开头并以数字结尾的行，并提取出这个数字去做偏移量计算，以此得到所对应的PDF页码，并直接输出。
+具体代码如下
+```python
+ef content_output(pdf):  # 输出结果
+    content_page = content_page_search(pdf)  # 目录页数
+    offset = offset_calculate(pdf)  # 偏移量
+    print('正在输出目录')
+    for num in content_page:
+        page = pdf.pages[num - 1]
+        text = page.extract_text_lines()
+        # 下面用正则表达式去提取目录页当中以字母开头数字结尾的行，并将此行最后连续的数字提取出来，加上偏移量就是这一个书本页码在pdf中对应的页码
+        for lines in text:
+            line = lines['text']
+            last_digits = re.findall(r'^[a-zA-Z].*\d+$', line)
+            if last_digits:
+                last_digits = int(re.findall(r'\d+', last_digits[0])[0])
+                print(line, '|pdf page -->', last_digits + offset)
+            else:
+                print(line)
+```
+#### 3.3 输入模块
+此模块用于给用户在控制台自定义输入PDF文件路径
+```python
+def load_pdf():  # pdf文件读取函数
+    print('请输入pdf文件路径')
+    load = input()
+    try:
+        pdf = pdfplumber.open(load)
+        print("已读取文件")
+        return pdf
+    except Exception as e:
+        print("文件路径有误请重试", e)
+        load_pdf()
+```
+
+### 四：后续展望
+这个项目做的还不是十分完善，虽然直接提取了目录页做分析免去了很多麻烦，但是后续还有很多需要完善的地方，比如页码识别的准确性，偏移量的合理性，中英文的结合模块。
+当然了，这个问题还可以交由机器学习去完成，可以利用一些比如CNN，RNN去解决这个问题，训练一个神经网络去识别目录。我也会持续完善这个项目。
