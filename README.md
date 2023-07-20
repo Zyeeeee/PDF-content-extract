@@ -21,8 +21,9 @@ This is a solution for a written examination question
 #### 3.1 目录页识别
 为了识别出一本书的目录页，由于书本的目录在绝大多数情况下都是在书本的最前面，因此在程序中只分析了PDF文件的前20页，以“chapter”为关键词进行查找并筛选，最后返回目录页的页码。
 具体函数实现如下
-'''
-def content_page_search(pdf):  # 目录页查找
+<html>
+    <body>
+        def content_page_search(pdf):  # 目录页查找
     result_nums = set()  # 创建一个空集合去储存目录页的页数
     for num in range(20):
         page = pdf.pages[num]
@@ -33,4 +34,5 @@ def content_page_search(pdf):  # 目录页查找
         else:
             continue
     return result_nums
-'''
+    </body>
+</html>
