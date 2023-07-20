@@ -19,12 +19,11 @@ This is a solution for a written examination question
 
 ### 三：具体实现和挑战
 #### 3.1 目录页识别
-为了识别出一本书的目录页，由于书本的目录在绝大多数情况下都是在书本的最前面，因此在程序中只分析了PDF文件的前20页，以“chapter”为关键词进行查找并筛选，最后返回目录页的页码。
+为了识别出一本书的目录页，由于书本的目录在绝大多数情况下都是在书本的最前面，因此在程序中只分析了PDF文件的前20页，以“chapter”为关键词进行查找并筛选，最后返回目录页的页码。在仔细分析了pdfplumber的多重嵌套输出方式后，终于找到了输出页码的正确方法
 具体函数实现如下
-<html>
-    <body>
-        def content_page_search(pdf):  # 目录页查找
-    result_nums = set()  # 创建一个空集合去储存目录页的页数
+```python
+def content_page_search(pdf):  # 目录页查找
+    result_nums = set()  # 创建一个空集合去储存目录页的页数防止重复
     for num in range(20):
         page = pdf.pages[num]
         search_result = page.search('chapter ', case=False)
@@ -34,5 +33,6 @@ This is a solution for a written examination question
         else:
             continue
     return result_nums
-    </body>
-</html>
+```
+此函数可以很好地识别出目录页的PDF页码并返回。
+#### 3.2 页码识别
